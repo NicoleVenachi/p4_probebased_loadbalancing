@@ -224,77 +224,73 @@ control MyIngress(inout headers hdr,
         time_t duration;
         time_t delay;
 
-        // read byte count of input port, get reset to 0
+        // read byte count of input port, reset the byte count when a probe packet passes through
         byte_cnt_reg.read(ingress_byte, (bit<32>)standard_metadata.ingress_port);
         byte_cnt_reg.write((bit<32>)standard_metadata.ingress_port, 0);
 
 
         // get duration
-        //curr_queue = (bit<32>) standard_metadata.deq_qdepth;
-        //hdr.wecmp.queue = curr_queue;
+
         time_t cur_time = standard_metadata.ingress_global_timestamp;
         last_time_cnt_reg.read(last_time, (bit<32>)standard_metadata.ingress_port);
         last_time_cnt_reg.write((bit<32>)standard_metadata.ingress_port, cur_time);
         duration = cur_time - last_time; // in micro second
-        //hdr.wecmp.queue = (bit<32>) standard_metadata.deq_qdepth;
-        // bandwidth = 1Mbps, that is 1bit / 1ms will be the top rank(weight = 0)
-        // ingress_byte is in byte unit, so << 3
-        // we need 8 rank, so << more 3 bit, or we can >> duration 3 bit
+
         ingress_byte = ingress_byte << 6;
         hdr.wecmp.duration=ingress_byte;
 
         if(duration > ingress_byte){
             weight = 8;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 7;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 6;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 5;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 4;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 3;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 2;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
         }
         if(duration > ingress_byte){
             weight = 1;
-            duration = 0; // let it not to grater than ingress_byte afterward
+            duration = 0; 
         }
         else{
             ingress_byte = ingress_byte - duration;
@@ -345,20 +341,12 @@ control MyIngress(inout headers hdr,
         }
         else{}
 
-        // more larger the weight is, the utilization will be more less.
-        // record the less one of the weight
+        // more larger the weight is, the utilization/queue is smaller.
+
 
         hdr.wecmp.max_utilization = hdr.wecmp.max_utilization + weight + weight_q;
         //hdr.wecmp.max_utilization = hdr.wecmp.max_utilization + weight;
 
-        /*else if(hdr.wecmp.max_utilization==0){
-            hdr.wecmp.max_utilization = weight;
-        }*/
-        // save utilization of path
-        //utilization_reg.write((bit<32>)hdr.wecmp.tag_path_id, hdr.wecmp.max_utilization);
-
-        // for testing
-        //utilization_reg.write((bit<32>)hdr.wecmp.selected_path_id, hdr.wecmp.max_utilization);
 
         hdr.wecmp.dir = 1;
         standard_metadata.egress_spec = 2;
@@ -577,7 +565,7 @@ control MyIngress(inout headers hdr,
         }
         else if(hdr.ipv4.isValid()){
         meta.output_tag_id = hdr.wecmp.selected_path_id & 1;
-        //bit<8> output_tag_id_temp = meta.output_tag_id;
+  
           if((hdr.ipv4.ttl < 64  && meta.sw_id == 1) || (hdr.ipv4.ttl < 64 && meta.sw_id == 2)){
             //ipv4_lpm_simple.apply();
             meta.output_tag_id = 2;
@@ -586,7 +574,7 @@ control MyIngress(inout headers hdr,
 
           }
           ipv4_lpm.apply();
-        //meta.output_tag_id = output_tag_id_temp;
+        
         }
 
         // record bytes
