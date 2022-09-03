@@ -328,77 +328,72 @@ control MyEgress(inout headers hdr,
         if(hdr.wecmp.isValid()){
           if(hdr.wecmp.dir == 0){
 
-            // read byte count of input port, get reset to 0
+            // read byte count of input port, reset the byte count when a probe packet passes through
 	        byte_cnt_reg.read(ingress_byte, (bit<32>)standard_metadata.egress_port);
 	        byte_cnt_reg.write((bit<32>)standard_metadata.egress_port, 0);
 
-            // get duration
-            //curr_queue = (bit<32>) standard_metadata.deq_qdepth;
-            //hdr.wecmp.queue = curr_queue;
-            //hdr.wecmp.queue = 5;
+            
             time_t cur_time = standard_metadata.ingress_global_timestamp;
             last_time_reg.read(last_time, (bit<32>)standard_metadata.egress_port);
 	          last_time_reg.write((bit<32>)standard_metadata.egress_port, cur_time);
             duration = cur_time - last_time; // in micro second
-            // bandwidth = 1Mbps, that is 1bit / 1ms will be the top rank(weight = 0)
-            // ingress_byte is in byte unit, so << 3
-            // we need 8 rank, so << more 3 bit, or we can >> duration 3 bit
+            
             ingress_byte = ingress_byte << 6;
 
             hdr.wecmp.duration = ingress_byte;
 
             if(duration > ingress_byte){
                 weight = 8;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 7;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 6;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 5;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0;
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 4;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 3;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 2;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; 
             }
             else{
                 ingress_byte = ingress_byte - duration;
             }
             if(duration > ingress_byte){
                 weight = 1;
-                duration = 0; // let it not to grater than ingress_byte afterward
+                duration = 0; // lets ensure that the algorithm get only into one if/else conditino 
             }
             else{
                 ingress_byte = ingress_byte - duration;
